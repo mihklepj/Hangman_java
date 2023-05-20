@@ -2,8 +2,6 @@ package models;
 
 import models.datastructures.DataScores;
 
-import javax.swing.*;
-import java.io.File;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -15,7 +13,7 @@ import java.util.List;
  */
 public class Database {
     private Connection connection = null;
-    private String databaseUrl;
+    private final String databaseUrl;
     private final Model model;
 
     /**

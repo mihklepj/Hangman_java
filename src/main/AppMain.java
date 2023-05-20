@@ -5,7 +5,6 @@ import models.Model;
 import views.View;
 
 import javax.swing.*;
-import java.io.File;
 
 /**
  * This is the class that is invoked

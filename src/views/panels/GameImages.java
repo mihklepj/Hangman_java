@@ -12,7 +12,7 @@ import java.util.List;
  * A class that creates an image panel and at the same time reads the images in the image folder into an array
  */
 public class GameImages extends JPanel {
-    private Model model;
+    private final Model model;
     private JLabel lblImage; // A label that contains an image
 
     /**

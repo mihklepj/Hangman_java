@@ -1,7 +1,6 @@
 package controllers.listeners;
 
 import models.Model;
-import views.View;
 
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
