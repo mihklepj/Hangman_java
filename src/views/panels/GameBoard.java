@@ -161,7 +161,7 @@ public class GameBoard extends JPanel {
 
     /**
      * Let's take a button new game
-     * @return nutton
+     * @return button
      */
     public JButton getBtnNew() {
         return btnNew;

@@ -2,6 +2,8 @@ package controllers.listeners;
 
 import models.Model;
 import views.View;
+import views.panels.GameBoard;
+import views.panels.GameResult;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -33,11 +35,15 @@ public class ButtonNew implements ActionListener {
             view.getGameTime().setMinutes(0);
             view.getGameTime().setRunning(true); // Set game running
             view.getGameTime().startTimer(); // Start game time
+
+
         } else { // gameTime is running
             view.getGameTime().stopTimer(); // Stop gameTime
             view.getGameTime().setRunning(false); // set game not running
         }
         view.setNewImage(0);
         view.getTxtChar().requestFocus(); // After pressing New Game, the input box becomes active
-    }
+        model.startNewGame();
+        model.getRandomWord();
+        this.view.getLblResult().setText(this.model.getUserWord());    }
 }

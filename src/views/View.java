@@ -76,6 +76,8 @@ public class View extends JFrame {
         gameBoard.getBtnNew().addActionListener(al);
     }
 
+    public void registerButtonSend(ActionListener al) { gameBoard.getBtnSend().addActionListener(al); }
+
     /**
      * Take the game pause button from the game board and add an actionListener to the button
      * @param al actionListener

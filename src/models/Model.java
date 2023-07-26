@@ -6,6 +6,12 @@ import javax.swing.table.DefaultTableModel;
 import java.util.ArrayList;
 import java.util.List;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 /**
  * A model where the entire logic of the game must take place
  */
@@ -24,6 +30,13 @@ public class Model {
     private List<DataScores> dataScores = new ArrayList<>(); // The contents of the entire database table scores
     private int imageId = 0; // Current image id (0..11)
     private String selectedCategory = chooseCategory; // Default all categories as "All categories"
+    private String newWord;  // Random word from database
+    private List<Character> userWord;  // User found letters (use Character class instead of list of chars)
+    private List<Character> allUserChars;  // Any letters user entered incorrectly (use Character class)
+    private int counter;  // Error counter
+    private String playerName = "UNKNOWN";
+    private String leaderboardFile = "leaderboard.txt";
+    private List<String> scoreData = new ArrayList<>();  // Leaderboard file contents
 
     /**
      * During the creation of the model, the names of the categories to be shown in the combobox are known
@@ -86,6 +99,65 @@ public class Model {
         return databaseFile;
     }
 
+    public void startNewGame() {
+        getRandomWord(); // Set new word (this.newWord)
+        System.out.println(this.newWord);  // For testing
+        System.out.println(this.selectedCategory);
+        this.userWord = new ArrayList<>();
+        this.allUserChars = new ArrayList<>();
+        this.counter = 0;
+        // Replace all letters with '_' and ' '
+        for (int x = 0; x < this.newWord.length(); x++) {
+            this.userWord.add('_');
+            this.userWord.add(' ');
+        }
+        this.userWord.remove(this.userWord.size()-1);
+    }
+    public void sendLetter() {
+    }
+    /**
+     * Returns the user_word as a String
+     * @return String representation of the user_word
+     */
+    public String getUserWord() {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (Character character : this.userWord) {
+            stringBuilder.append(character);
+        }
+        return stringBuilder.toString();
+    }
+    public void getRandomWord() {
+        try {
+            // Database connection
+            String connectionString = "jdbc:sqlite:" + getDatabaseFile();
+            Connection connection = DriverManager.getConnection(connectionString);
+
+            // SQL query to select a random word
+            String query = "SELECT word FROM words WHERE category = ? OR ? = 'All categories' ORDER BY RANDOM() LIMIT 1";
+
+            // Create a PreparedStatement to execute the query
+            PreparedStatement statement = connection.prepareStatement(query);
+
+            // Set the value of the category parameters
+            statement.setString(1, selectedCategory);
+            statement.setString(2, selectedCategory);
+
+            // Execute the query and get the result set
+            ResultSet resultSet = statement.executeQuery();
+
+            // Fetch the word from the result set
+            if (resultSet.next()) {
+                this.newWord = resultSet.getString("word");
+            }
+
+            // Close the resources
+            resultSet.close();
+            statement.close();
+            connection.close();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
     /**
      * Returns the default table model (DefaultTableModel)
      * @return DefaultTableModel
