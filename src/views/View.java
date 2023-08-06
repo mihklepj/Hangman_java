@@ -77,6 +77,10 @@ public class View extends JFrame {
         gameBoard.getBtnNew().addActionListener(al);
     }
 
+    /**
+     * Take the Send button from the game board and add an actionListener to the button
+     * @param al actionListener
+     */
     public void registerButtonSend(ActionListener al) { gameBoard.getBtnSend().addActionListener(al); }
 
     /**
@@ -91,6 +95,10 @@ public class View extends JFrame {
      */
     public void registerComboBoxChange(ItemListener il) {gameBoard.getCmbCategory().addItemListener(il);}
 
+    /**
+     * Take the TxtChar input from the game board and add an actionListener to the button
+     * @param al actionListener
+     */
     public void registerTxtChar(ActionListener al) {gameBoard.getTxtChar().addActionListener(al);}
 
 

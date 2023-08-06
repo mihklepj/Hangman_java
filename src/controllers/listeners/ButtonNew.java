@@ -2,8 +2,6 @@ package controllers.listeners;
 
 import models.Model;
 import views.View;
-import views.panels.GameBoard;
-import views.panels.GameResult;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

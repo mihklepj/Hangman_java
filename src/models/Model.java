@@ -14,10 +14,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+/**
+ * Represents the Model class for the Hangman game.
+ * This class manages the game state, word retrieval from the database, and user input handling.
+ */
 public class Model {
     private final String databaseFile = "hangman_words_ee_test.db"; // Default database
     private Connection connection = null;
-    private String dbUrl = "jdbc:sqlite" + databaseFile;
+    private String dbUrl = "jdbc:sqlite:" + databaseFile;
     private final String imagesFolder = "images"; // Hangman game images location
     private List<String> imageFiles = new ArrayList<>(); // All images with full folder path
     private String[] cmbNames; // ComboBox categories names (contents)
@@ -36,7 +40,7 @@ public class Model {
     private List<String> scoreData = new ArrayList<>();  // Leaderboard file contents
     private int gametime;
     private Connection dbConnection() throws SQLException {
-        if(connection != null) {
+        if (connection != null) {
             connection.close();
         }
         connection = DriverManager.getConnection(dbUrl);
@@ -93,10 +97,12 @@ public class Model {
         this.gametime = gametime;
     }
 
+    /**
+     * Starts a new game by generating a random word from the database.
+     * Resets userWord, allUserChars, correctChars, and the error counter.
+     */
     public void startNewGame() {
         getRandomWord(); // Set new word (this.newWord)
-        System.out.println("Algne newWord modelis: "+this.newWord);  // For testing
-        System.out.println(this.selectedCategory);
         this.userWord = new ArrayList<>();
         this.allUserChars = new ArrayList<>();
         this.correctChars = new ArrayList<>();
@@ -108,10 +114,14 @@ public class Model {
             this.userWord.add('_');
             this.userWord.add(' ');
         }
-        System.out.println("Algne userWord modelis: "+this.userWord);
 
     }
 
+    /**
+     * Updates the user input and replaces '_' with found letters in the userWord.
+     *
+     * @param userChar The character entered by the user.
+     */
     public void changeUserInput(char userChar) {
         // Replace all '_' with found letters
         List<Character> currentWord = charsToList(newWord);
@@ -124,16 +134,25 @@ public class Model {
         }
     }
 
-    // Helper method to convert a String to a List of Characters
+    /**
+     * Converts a String to a List of Characters.
+     *
+     * @param word The String to convert.
+     * @return The List of Characters.
+     */
     private List<Character> charsToList(String word) {
         List<Character> charList = new ArrayList<>();
         for (char c : word.toCharArray()) {
             charList.add(c);
         }
-        System.out.println("Modelis: "+playerName);
         return charList;
     }
 
+    /**
+     * Retrieves the current user word as a String.
+     *
+     * @return The user word as a String.
+     */
     public String getUserWord() {
         StringBuilder stringBuilder = new StringBuilder();
         for (Character character : this.userWord) {
@@ -194,6 +213,13 @@ public class Model {
             throw new RuntimeException(e);
         }
     }
+
+    /**
+     * Inserts the game results into the database as a new scoreboard entry.
+     * The method retrieves the play time, player name, guessed word, wrong characters, and game time.
+     * The entry is then committed to the database.
+     * After the insertion, it also retrieves the updated dataScores.
+     */
     public void insertToScoreboard() {
         String sql = "INSERT INTO scores (playertime, playername, guessword, wrongcharacters, gametime) VALUES (?, ?, ?, ?, ?)";
         String wrongLetters = listToString(getAllUserChars()); // Convert List<Character> to a string
@@ -201,6 +227,8 @@ public class Model {
         DataScores endTime = new DataScores(LocalDateTime.now(), getPlayerName(), getNewWord(), wrongLetters, getGametime());
         try {
             Connection conn = this.dbConnection();
+            conn.setAutoCommit(false);
+
             PreparedStatement preparedStmt = conn.prepareStatement(sql);
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             playerTime = LocalDateTime.now().format(formatter);
@@ -216,13 +244,18 @@ public class Model {
             preparedStmt.close();
             conn.close();
 
-            scoreSelect();
+            getDataScores();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
-    // Helper method to convert a List<Character> to a String
+    /**
+     * Converts a List of Characters to a String.
+     *
+     * @param list The List of Characters to convert.
+     * @return The String representation of the list.
+     */
     private String listToString(List<Character> list) {
         StringBuilder sb = new StringBuilder();
         for (Character ch : list) {
