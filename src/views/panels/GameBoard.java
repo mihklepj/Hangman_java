@@ -115,7 +115,7 @@ public class GameBoard extends JPanel {
         pnlComponents.add(btnSend, gbc);
 
         // Fourth line
-        lblError = new JLabel("Wrong 0 letter(s)");
+        lblError = new JLabel("");
         gbc.gridx = 0; // Veerg
         gbc.gridy = 3; // rida
         gbc.gridwidth = 3; // Over three columns
@@ -142,6 +142,12 @@ public class GameBoard extends JPanel {
     public JLabel getLblTime() {
         return lblTime;
     }
+
+    /**
+     * Let's take a label for showing errors.
+     * @return a label with the number of errors
+     */
+    public JLabel getLblError() {return lblError;}
 
     /**
      * Let's take a button leaderboard

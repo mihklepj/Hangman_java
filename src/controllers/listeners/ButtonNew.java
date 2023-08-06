@@ -42,8 +42,8 @@ public class ButtonNew implements ActionListener {
             view.getGameTime().setRunning(false); // set game not running
         }
         view.setNewImage(0);
-        view.getTxtChar().requestFocus(); // After pressing New Game, the input box becomes active
         model.startNewGame();
-        model.getRandomWord();
+        view.getTxtChar().requestFocus(); // After pressing New Game, the input box becomes active
+        view.getGameBoard().getLblError().setText("Clean run so far!");
         this.view.getLblResult().setText(this.model.getUserWord());    }
 }

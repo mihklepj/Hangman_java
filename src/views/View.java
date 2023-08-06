@@ -22,6 +22,7 @@ public class View extends JFrame {
     private GameResult gameResult; // Bottom panel
     private final RealDateTime realDateTime; // Real Date Time
     private final GameTimer gameTime; // Game time
+    private int incorrectGuesses = 0; // Variable to keep track of incorrect guesses
 
     /**
      * Main window JFrame
@@ -82,17 +83,16 @@ public class View extends JFrame {
      * Take the game pause button from the game board and add an actionListener to the button
      * @param al actionListener
      */
-    public void registerButtonCancel(ActionListener al) {
-        gameBoard.getBtnCancel().addActionListener(al);
-    }
+    public void registerButtonCancel(ActionListener al) {gameBoard.getBtnCancel().addActionListener(al);}
 
     /**
      * Take a ComboBox from the game board and add an itemListener
      * @param il itemListener
      */
-    public void registerComboBoxChange(ItemListener il) {
-        gameBoard.getCmbCategory().addItemListener(il);
-    }
+    public void registerComboBoxChange(ItemListener il) {gameBoard.getCmbCategory().addItemListener(il);}
+
+    public void registerTxtChar(ActionListener al) {gameBoard.getTxtChar().addActionListener(al);}
+
 
     /**
      * Update the leaderboard table (DefaultTableModel)
@@ -151,6 +151,8 @@ public class View extends JFrame {
         return gameBoard.getLblTime();
     }
 
+    public JLabel getLblError() { return gameBoard.getLblError(); }
+
     /**
      * Return the guessed word label located in the gameResult panel (bottom panel)
      * @return label
@@ -185,12 +187,25 @@ public class View extends JFrame {
 
     /**
      * Set a new image according to the image number
-     * @param id image id (0..11)
+     * @param incorrectGuesses number of incorrect guesses (0..11)
      */
-    public void setNewImage(int id) {
-        ImageIcon imageIcon = new ImageIcon(model.getImageFiles().get(id));
+    public void setNewImage(int incorrectGuesses) {
+        this.incorrectGuesses = incorrectGuesses;
+
+        // Show the corresponding image based on the number of incorrect guesses
+        ImageIcon imageIcon = new ImageIcon(model.getImageFiles().get(incorrectGuesses));
         gameBoard.getGameImages().getLblImage().setIcon(imageIcon);
     }
+
+    /**
+     * Get the number of incorrect guesses
+     * @return number of incorrect guesses
+     */
+    public int getIncorrectGuesses() {
+        return incorrectGuesses;
+    }
+
+
 
     /**
      * Returns an input box
@@ -199,4 +214,5 @@ public class View extends JFrame {
     public JTextField getTxtChar() {
         return gameBoard.getTxtChar();
     }
+
 }

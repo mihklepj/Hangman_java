@@ -3,6 +3,8 @@ package models;
 import models.datastructures.DataScores;
 
 import javax.swing.table.DefaultTableModel;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,16 +14,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-/**
- * A model where the entire logic of the game must take place
- */
 public class Model {
-    /*
-    hangman_words_ee.db - Estonian words, the leaderboard table is empty
-    hangman_words_en.db - English words, the leaderboard table is empty
-    hangman_words_ee_test.db - Estonian words, the leaderboard table is NOT empty
-     */
     private final String databaseFile = "hangman_words_ee_test.db"; // Default database
+    private Connection connection = null;
+    private String dbUrl = "jdbc:sqlite" + databaseFile;
     private final String imagesFolder = "images"; // Hangman game images location
     private List<String> imageFiles = new ArrayList<>(); // All images with full folder path
     private String[] cmbNames; // ComboBox categories names (contents)
@@ -33,92 +29,111 @@ public class Model {
     private String newWord;  // Random word from database
     private List<Character> userWord;  // User found letters (use Character class instead of list of chars)
     private List<Character> allUserChars;  // Any letters user entered incorrectly (use Character class)
+    private List<Character> correctChars; // Characters entered correctly
     private int counter;  // Error counter
     private String playerName = "UNKNOWN";
     private String leaderboardFile = "leaderboard.txt";
     private List<String> scoreData = new ArrayList<>();  // Leaderboard file contents
+    private int gametime;
+    private Connection dbConnection() throws SQLException {
+        if(connection != null) {
+            connection.close();
+        }
+        connection = DriverManager.getConnection(dbUrl);
+        return connection;
+    }
 
-    /**
-     * During the creation of the model, the names of the categories to be shown in the combobox are known
-     */
     public Model() {
         new Database(this);
     }
 
-    /**
-     * Sets the content to match the ComboBox. Adds "All categories" and unique categories obtained from the database.
-     * @param unique all unique categories from database
-     */
     public void setCorrectCmbNames(List<String> unique) {
-        cmbNames = new String[unique.size()+1];
+        cmbNames = new String[unique.size() + 1];
         cmbNames[0] = chooseCategory; // First choice before categories
         int x = 1;
-        for(String category : unique) {
+        for (String category : unique) {
             cmbNames[x] = category;
             x++;
         }
     }
 
-    /**
-     * All ComboBox contents
-     * @return ComboBox contents
-     */
     public String[] getCmbNames() {
         return cmbNames;
     }
 
-    /**
-     * Sets a new DefaultTableModel
-     * @param dtmScores DefaultTableModel
-     */
     public void setDtmScores(DefaultTableModel dtmScores) {
         this.dtmScores = dtmScores;
     }
 
-    /**
-     * ALl leaderbaord content
-     * @return List<DataScores>
-     */
     public List<DataScores> getDataScores() {
         return dataScores;
     }
 
-    /**
-     * Sets the new content of the leaderboard
-     * @param dataScores List<DataScores>
-     */
     public void setDataScores(List<DataScores> dataScores) {
         this.dataScores = dataScores;
     }
 
-    /**
-     * Returns the configured database file
-     * @return databaseFile
-     */
     public String getDatabaseFile() {
         return databaseFile;
     }
 
+    public int getCounter() {
+        return counter;
+    }
+
+    public void setCounter(int counter) {
+        this.counter = counter;
+    }
+
+    public int getGametime() {
+        return gametime;
+    }
+
+    public void setGametime(int gametime) {
+        this.gametime = gametime;
+    }
+
     public void startNewGame() {
         getRandomWord(); // Set new word (this.newWord)
-        System.out.println(this.newWord);  // For testing
+        System.out.println("Algne newWord modelis: "+this.newWord);  // For testing
         System.out.println(this.selectedCategory);
         this.userWord = new ArrayList<>();
         this.allUserChars = new ArrayList<>();
+        this.correctChars = new ArrayList<>();
         this.counter = 0;
+
         // Replace all letters with '_' and ' '
+
         for (int x = 0; x < this.newWord.length(); x++) {
             this.userWord.add('_');
             this.userWord.add(' ');
         }
-        this.userWord.remove(this.userWord.size()-1);
+        System.out.println("Algne userWord modelis: "+this.userWord);
+
     }
-    public void sendLetter() {
+
+    public void changeUserInput(char userChar) {
+        // Replace all '_' with found letters
+        List<Character> currentWord = charsToList(newWord);
+        int x = 0;
+        for (char c : currentWord) {
+            if (Character.toLowerCase(userChar) == Character.toLowerCase(c)) {
+                userWord.set(x, Character.toUpperCase(userChar));
+            }
+            x = x + 2;
+        }
     }
-    /**
-     * Returns the user_word as a String
-     * @return String representation of the user_word
-     */
+
+    // Helper method to convert a String to a List of Characters
+    private List<Character> charsToList(String word) {
+        List<Character> charList = new ArrayList<>();
+        for (char c : word.toCharArray()) {
+            charList.add(c);
+        }
+        System.out.println("Modelis: "+playerName);
+        return charList;
+    }
+
     public String getUserWord() {
         StringBuilder stringBuilder = new StringBuilder();
         for (Character character : this.userWord) {
@@ -126,6 +141,27 @@ public class Model {
         }
         return stringBuilder.toString();
     }
+
+    /**
+     * Get the list of wrong user characters
+     * @return List<Character> list of all user characters
+     */
+    public List<Character> getAllUserChars() {
+        return allUserChars;
+    }
+
+    /**
+     * Get the list of correct user characters
+     * @return List<Character> list of all user characters
+     */
+    public List<Character> getCorrectChars() {
+        return correctChars;
+    }
+
+    /**
+     * Get random word from database according to the chosen category
+     * @return
+     */
     public void getRandomWord() {
         try {
             // Database connection
@@ -158,67 +194,84 @@ public class Model {
             throw new RuntimeException(e);
         }
     }
-    /**
-     * Returns the default table model (DefaultTableModel)
-     * @return DefaultTableModel
-     */
+    public void insertToScoreboard() {
+        String sql = "INSERT INTO scores (playertime, playername, guessword, wrongcharacters, gametime) VALUES (?, ?, ?, ?, ?)";
+        String wrongLetters = listToString(getAllUserChars()); // Convert List<Character> to a string
+        String playerTime = null;
+        DataScores endTime = new DataScores(LocalDateTime.now(), getPlayerName(), getNewWord(), wrongLetters, getGametime());
+        try {
+            Connection conn = this.dbConnection();
+            PreparedStatement preparedStmt = conn.prepareStatement(sql);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            playerTime = LocalDateTime.now().format(formatter);
+            preparedStmt.setString(1, playerTime);
+            preparedStmt.setString(2, getPlayerName());
+            preparedStmt.setString(3, getNewWord());
+            preparedStmt.setString(4, wrongLetters);
+            preparedStmt.setInt(5, getGametime());
+            preparedStmt.executeUpdate();
+
+            // Commit and close the resources
+            conn.commit();
+            preparedStmt.close();
+            conn.close();
+
+            scoreSelect();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // Helper method to convert a List<Character> to a String
+    private String listToString(List<Character> list) {
+        StringBuilder sb = new StringBuilder();
+        for (Character ch : list) {
+            sb.append(ch);
+        }
+        return sb.toString();
+    }
+
     public DefaultTableModel getDtmScores() {
         return dtmScores;
     }
 
-    /**
-     * Returns the images folder
-     * @return String
-     */
     public String getImagesFolder() {
         return imagesFolder;
     }
 
-    /**
-     * Sets up an array of new images
-     * @param imageFiles List<String>
-     */
     public void setImageFiles(List<String> imageFiles) {
         this.imageFiles = imageFiles;
     }
 
-    /**
-     * An array of images
-     * @return List<String>
-     */
     public List<String> getImageFiles() {
         return imageFiles;
     }
 
-    /**
-     * The id of the current image
-     * @return id
-     */
     public int getImageId() {
         return imageId;
     }
 
-    /**
-     * Sets the new image id
-     * @param imageId id
-     */
     public void setImageId(int imageId) {
         this.imageId = imageId;
     }
 
-    /**
-     * Returns the selected category
-     * @return selected category
-     */
     public String getSelectedCategory() {
         return selectedCategory;
     }
 
-    /**
-     * Sets a new selected category
-     * @param selectedCategory new category
-     */
     public void setSelectedCategory(String selectedCategory) {
         this.selectedCategory = selectedCategory;
+    }
+
+    public String getNewWord() {
+        return newWord;
+    }
+
+    public String getPlayerName() {
+        return playerName;
+    }
+
+    public void setPlayerName(String playerName) {
+        this.playerName = playerName;
     }
 }
