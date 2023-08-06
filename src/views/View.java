@@ -159,8 +159,6 @@ public class View extends JFrame {
         return gameBoard.getLblTime();
     }
 
-    public JLabel getLblError() { return gameBoard.getLblError(); }
-
     /**
      * Return the guessed word label located in the gameResult panel (bottom panel)
      * @return label
@@ -204,16 +202,6 @@ public class View extends JFrame {
         ImageIcon imageIcon = new ImageIcon(model.getImageFiles().get(incorrectGuesses));
         gameBoard.getGameImages().getLblImage().setIcon(imageIcon);
     }
-
-    /**
-     * Get the number of incorrect guesses
-     * @return number of incorrect guesses
-     */
-    public int getIncorrectGuesses() {
-        return incorrectGuesses;
-    }
-
-
 
     /**
      * Returns an input box
