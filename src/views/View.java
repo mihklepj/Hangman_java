@@ -22,6 +22,7 @@ public class View extends JFrame {
     private GameResult gameResult; // Bottom panel
     private final RealDateTime realDateTime; // Real Date Time
     private final GameTimer gameTime; // Game time
+    private int incorrectGuesses = 0; // Variable to keep track of incorrect guesses
 
     /**
      * Main window JFrame
